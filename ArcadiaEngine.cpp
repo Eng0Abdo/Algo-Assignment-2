@@ -22,24 +22,50 @@ using namespace std;
 
 // --- 1. PlayerTable (Double Hashing) ---
 
+struct Entry {
+    int playerID;
+    string name;
+};
+
 class ConcretePlayerTable : public PlayerTable {
 private:
-    // TODO: Define your data structures here
-    // Hint: You'll need a hash table with double hashing collision resolution
+    vector<Entry> table;
+    vector<bool> occupied;
 
 public:
-    ConcretePlayerTable() {
-        // TODO: Initialize your hash table
+    ConcretePlayerTable() : table(101), occupied(101, false){} 
+
+    int h1(int id){
+        return id % 101;
+    }
+
+    int h2(int id){
+        return 97 - (id % 97);
     }
 
     void insert(int playerID, string name) override {
-        // TODO: Implement double hashing insert
-        // Remember to handle collisions using h1(key) + i * h2(key)
+        for (int i = 0; i < 101; i++)
+        {
+            int index = (h1(playerID) + i * h2(playerID)) % 101;
+            if (!occupied[index])
+            {
+                table[index].playerID = playerID;
+                table[index].name = name;
+                occupied[index] = true;
+                return;
+            }
+        }
+        cout << "Table is Full";
     }
 
     string search(int playerID) override {
-        // TODO: Implement double hashing search
-        // Return "" if player not found
+        for (int i = 0; i < 101; i++)
+        {
+            int index = (h1(playerID) + i * h2(playerID)) % 101;
+            if (occupied[index] && table[index].playerID == playerID) {
+                return table[index].name;
+            }
+        }
         return "";
     }
 };
