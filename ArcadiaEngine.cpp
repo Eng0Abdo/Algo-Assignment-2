@@ -88,7 +88,6 @@ private:
     };
 
     int MAX_LEVEL;
-    float P;
     int currentLevel;
     Node* head;
 
@@ -111,7 +110,6 @@ private:
 public:
     ConcreteLeaderboard() {
         MAX_LEVEL = 5;
-        P = 0.5;
         currentLevel = 0;
         head = new Node(MAX_LEVEL, -1, 1000000);
     }
