@@ -561,32 +561,33 @@ int InventorySystem::maximizeCarryValue(int capacity, vector<pair<int, int>>& it
 
 long long InventorySystem::countStringPossibilities(string s) {
     // TODO: Implement string decoding DP
-    // Rules: "uu" can be decoded as "w" or "uu"
-    //        "nn" can be decoded as "m" or "nn"
-    // Count total possible decodings
-    
-    const int MOD = 1e9 + 7;
-    int n = s.size();
 
-    vector<long long> dp(n + 1, 0);
-    dp[0] = 1;
-
-    for (int i = 1; i <= n; i++) {
-
-
-        dp[i] = dp[i - 1];
-
-        if (i >= 2) {
-            if ((s[i - 2] == 'u' && s[i - 1] == 'u') ||
-                (s[i - 2] == 'n' && s[i - 1] == 'n')) {
-
-                dp[i] = (dp[i] + dp[i - 2]) % MOD;
+        const int MOD = 1e9 + 7;
+        int n = s.size();
+        
+        for (int i = 0; i < n; i++) {
+            if (s[i] == 'w' || s[i] == 'm') {
+                return 0;
             }
         }
+        
+        vector<long long> dp(n + 1, 0);
+        dp[0] = 1;
+
+        for (int i = 1; i <= n; i++) {
+            dp[i] = dp[i - 1];
+            
+            if (i >= 2) {
+                if ((s[i - 2] == 'u' && s[i - 1] == 'u') ||
+                    (s[i - 2] == 'n' && s[i - 1] == 'n')) {
+                    dp[i] = (dp[i] + dp[i - 2]) % MOD;
+                }
+            }
+        }
+
+        return dp[n];
     }
 
-    return dp[n];
-}
 
 // =========================================================
 // PART C: WORLD NAVIGATOR (Graphs)
