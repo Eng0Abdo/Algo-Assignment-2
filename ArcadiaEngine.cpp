@@ -153,8 +153,8 @@ public:
     }
 
     void removePlayer(int playerID) override {
-        Node* curr = head;
         Node* target = nullptr;
+        Node* curr = head;
 
         while (curr->next[0]) {
             if (curr->next[0]->id == playerID) {
@@ -171,7 +171,12 @@ public:
 
         for (int level = currentLevel; level >= 0; level--) {
             while (curr->next[level] &&
-                   curr->next[level] != target) {
+                   curr->next[level] != target &&
+                   comesBefore(curr->next[level]->id,
+                               curr->next[level]->score,
+                               target->id,
+                               target->score))
+            {
                 curr = curr->next[level];
             }
             update[level] = curr;
@@ -188,18 +193,24 @@ public:
             currentLevel--;
     }
 
+
     vector<int> getTopN(int n) override {
         vector<int> result;
+
+        if (n <= 0)
+            return result;
+
         Node* curr = head->next[0];
 
         while (curr && n--) {
             result.push_back(curr->id);
             curr = curr->next[0];
         }
+
         return result;
     }
-};
 
+};
 // --- 3. AuctionTree (Red-Black Tree) ---
 
 class ConcreteAuctionTree : public AuctionTree {
