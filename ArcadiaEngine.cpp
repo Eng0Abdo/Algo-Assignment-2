@@ -99,7 +99,6 @@ private:
     int currentLevel;
     Node* head;
 
-    // random level
     int getRandomLevel() {
         int level = 0;
         while ((rand() % 2) && level < MAX_LEVEL)
