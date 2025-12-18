@@ -196,22 +196,312 @@ public:
 
 class ConcreteAuctionTree : public AuctionTree {
 private:
-    // TODO: Define your Red-Black Tree node structure
-    // Hint: Each node needs: id, price, color, left, right, parent pointers
+
+    struct Node {
+        int ID;
+        int price;
+        char color;
+        Node* left;
+        Node* right;
+        Node* parent;
+
+        Node(int id, int p) {
+            ID = id;
+            price = p;
+            color = 'R';
+            left = nullptr;
+            right = nullptr;
+            parent = nullptr;
+        }
+    };
+
+    Node* root;
+    Node* NIL;
+
+    // comparison
+    bool lessThan(int p1, int id1, int p2, int id2) {
+        if (p1 != p2) return p1 < p2;
+        return id1 < id2;
+    }
+
+    // Rotations
+
+    void leftRotate(Node* x) {
+        Node* y = x->right;
+        x->right = y->left;
+
+        if (y->left != NIL) {
+            y->left->parent = x;
+        }
+        y->parent = x->parent;
+
+        if (x->parent == nullptr) {
+            root = y;
+        }
+        else if (x == x->parent->left) {
+            x->parent->left = y;
+        }
+        else {
+            x->parent->right = y;
+        }
+        y->left = x;
+        x->parent = y;
+    }
+
+    void rightRotate(Node* x) {
+        Node* y = x->left;
+        x->left = y->right;
+
+        if (y->right != NIL) {
+            y->right->parent = x;
+        }
+        y->parent = x->parent;
+        if (x->parent == nullptr) {
+            root = y;
+        }
+        else if (x == x->parent->right) {
+            x->parent->right = y;
+        }
+        else {
+            x->parent->left = y;
+        }
+        y->right = x;
+        x->parent = y;
+    }
+
+    // Insert
+
+    void fixInsert(Node* x) {
+        while (x->parent != nullptr &&
+            x->parent->parent != nullptr &&
+            x->parent->color == 'R') {
+
+            if (x->parent == x->parent->parent->left) {
+                Node* z = x->parent->parent->right;
+
+                if (z->color == 'R') {
+                    x->parent->color = 'B';
+                    z->color = 'B';
+                    x->parent->parent->color = 'R';
+                    x = x->parent->parent;
+                }
+                else {
+                    if (x == x->parent->right) {
+                        x = x->parent;
+                        leftRotate(x);
+                    }
+                    x->parent->color = 'B';
+                    x->parent->parent->color = 'R';
+                    rightRotate(x->parent->parent);
+                }
+            }
+            else {
+                Node* z = x->parent->parent->left;
+                if (z->color == 'R') {
+                    x->parent->color = 'B';
+                    z->color = 'B';
+                    x->parent->parent->color = 'R';
+                    x = x->parent->parent;
+                }
+                else {
+                    if (x == x->parent->left) {
+                        x = x->parent;
+                        rightRotate(x);
+                    }
+                    x->parent->color = 'B';
+                    x->parent->parent->color = 'R';
+                    leftRotate(x->parent->parent);
+                }
+            }
+        }
+        root->color = 'B';
+    }
+
+    Node* search_ID(Node* node, int id) {
+        if (node == NIL) {
+            return NIL;
+        }
+        if (node->ID == id) {
+            return node;
+        }
+        Node* leftResult = search_ID(node->left, id);
+        if (leftResult != NIL) return leftResult;
+        return search_ID(node->right, id);
+    }
+
+    // Delete
+
+    Node* minimum(Node* node) {
+        while (node->left != NIL) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    void transplant(Node* x, Node* y) {
+        if (x->parent == nullptr) {
+            root = y;
+        }
+        else if (x == x->parent->left) {
+            x->parent->left = y;
+        }
+        else {
+            x->parent->right = y;
+        }
+        y->parent = x->parent;
+    }
+
+    void fixDelete(Node* x) {
+        while (x != root && x->color == 'B') {
+            if (x == x->parent->left) {
+                Node* a = x->parent->right;
+                if (a->color == 'R') {
+                    a->color = 'B';
+                    x->parent->color = 'R';
+                    leftRotate(x->parent);
+                    a = x->parent->right;
+                }
+                if (a->left->color == 'B' && a->right->color == 'B') {
+                    a->color = 'R';
+                    x = x->parent;
+                }
+                else {
+                    if (a->right->color == 'B') {
+                        a->left->color = 'B';
+                        a->color = 'R';
+                        rightRotate(a);
+                        a = x->parent->right;
+                    }
+                    a->color = x->parent->color;
+                    x->parent->color = 'B';
+                    a->right->color = 'B';
+                    leftRotate(x->parent);
+                    x = root;
+                }
+            }
+            else {
+                Node* a = x->parent->left;
+                if (a->color == 'R') {
+                    a->color = 'B';
+                    x->parent->color = 'R';
+                    rightRotate(x->parent);
+                    a = x->parent->left;
+                }
+
+                if (a->left->color == 'B' && a->right->color == 'B') {
+                    a->color = 'R';
+                    x = x->parent;
+                }
+                else {
+                    if (a->left->color == 'B') {
+                        a->right->color = 'B';
+                        a->color = 'R';
+                        leftRotate(a);
+                        a = x->parent->left;
+                    }
+                    a->color = x->parent->color;
+                    x->parent->color = 'B';
+                    a->left->color = 'B';
+                    rightRotate(x->parent);
+                    x = root;
+                }
+            }
+        }
+        x->color = 'B';
+    }
+
+    void deleteTree(Node* node) {
+        if (node == NIL) return;
+        deleteTree(node->left);
+        deleteTree(node->right);
+        delete node;
+    }
 
 public:
     ConcreteAuctionTree() {
-        // TODO: Initialize your Red-Black Tree
+        NIL = new Node(0, 0);
+        NIL->color = 'B';
+
+        NIL->left = NIL;
+        NIL->right = NIL;
+        NIL->parent = nullptr;
+
+        root = NIL;
+    }
+
+    ~ConcreteAuctionTree() {
+        deleteTree(root);
+        delete NIL;
     }
 
     void insertItem(int itemID, int price) override {
-        // TODO: Implement Red-Black Tree insertion
-        // Remember to maintain RB-Tree properties with rotations and recoloring
+        Node* node = new Node(itemID, price);
+        node->left = node->right = NIL;
+        Node* parent = nullptr;
+        Node* curr = root;
+
+        while (curr != NIL) {
+            parent = curr;
+            if (lessThan(price, itemID, curr->price, curr->ID)) {
+                curr = curr->left;
+            }
+            else {
+                curr = curr->right;
+            }
+        }
+        node->parent = parent;
+
+        if (parent == nullptr) {
+            root = node;
+        }
+        else if (lessThan(price, itemID, parent->price, parent->ID)) {
+            parent->left = node;
+        }
+        else {
+            parent->right = node;
+        }
+
+        fixInsert(node);
     }
 
     void deleteItem(int itemID) override {
-        // TODO: Implement Red-Black Tree deletion
-        // This is complex - handle all cases carefully
+        Node* z = search_ID(root, itemID);
+        if (z == NIL) return;
+
+        Node* y = z;
+        Node* x;
+        char originalColor = y->color;
+
+        if (z->left == NIL) {
+            x = z->right;
+            transplant(z, z->right);
+        }
+        else if (z->right == NIL) {
+            x = z->left;
+            transplant(z, z->left);
+        }
+        else {
+            y = minimum(z->right);
+            originalColor = y->color;
+            x = y->right;
+
+            if (y->parent == z) {
+                x->parent = y;
+            }
+            else {
+                transplant(y, y->right);
+                y->right = z->right;
+                y->right->parent = y;
+            }
+
+            transplant(z, y);
+            y->left = z->left;
+            y->left->parent = y;
+            y->color = z->color;
+        }
+
+        delete z;
+        if (originalColor == 'B') fixDelete(x);
     }
 };
 
@@ -248,10 +538,23 @@ int InventorySystem::optimizeLootSplit(int n, vector<int>& coins) {
 }
 
 int InventorySystem::maximizeCarryValue(int capacity, vector<pair<int, int>>& items) {
-    // TODO: Implement 0/1 Knapsack using DP
-    // items = {weight, value} pairs
-    // Return maximum value achievable within capacity
-    return 0;
+    vector<vector<int>> DP(items.size() + 1, vector<int>(capacity + 1, 0));
+
+    for (int i = 1; i <= items.size(); i++) {
+        int weight = items[i - 1].first;
+        int value = items[i - 1].second;
+
+        for (int j = 0; j <= capacity; j++) {
+            if (weight <= j) {
+                DP[i][j] = (DP[i - 1][j] > DP[i - 1][j - weight] + value ? DP[i - 1][j] : DP[i - 1][j - weight] + value);
+            }
+            else {
+                DP[i][j] = DP[i - 1][j];
+            }
+        }
+    }
+
+    return DP[items.size()][capacity];
 }
 
 long long InventorySystem::countStringPossibilities(string s) {
