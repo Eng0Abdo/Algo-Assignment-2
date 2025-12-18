@@ -509,33 +509,27 @@ public:
 // PART B: INVENTORY SYSTEM (Dynamic Programming)
 // =========================================================
 
+
 int InventorySystem::optimizeLootSplit(int n, vector<int>& coins) {
     int total = 0;
     for (int c : coins)
         total += c;
 
-    int target = total / 2;
+    int W = total / 2;
 
-    vector<bool> dp(target + 1, false);
-    dp[0] = true;
+    vector<int> dp(W + 1, 0);
 
     for (int coin : coins) {
-        for (int s = target; s >= coin; s--) {
-            if (dp[s - coin])
-                dp[s] = true;
+        for (int w = W; w >= coin; w--) {
+            dp[w] = max(dp[w], coin + dp[w - coin]);
         }
     }
-    int bestSplit = 0;
-    for (int s = target; s >= 0; s--) {
-        if (dp[s]) {
-            bestSplit = s;
-            break;
-        }
-    }
-    int diff =  total - 2 * bestSplit;
 
+    int best_subset_sum = dp[W];
+    int diff = total - 2 * best_subset_sum;
     return diff;
 }
+
 
 int InventorySystem::maximizeCarryValue(int capacity, vector<pair<int, int>>& items) {
     vector<vector<int>> DP(items.size() + 1, vector<int>(capacity + 1, 0));
