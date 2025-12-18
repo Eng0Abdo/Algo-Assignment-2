@@ -22,26 +22,27 @@ using namespace std;
 
 // --- 1. PlayerTable (Double Hashing) ---
 
-struct Entry {
-    int playerID;
-    string name;
-};
 
 class ConcretePlayerTable : public PlayerTable {
-private:
+    private:
+    struct Entry {
+        int playerID;
+        string name;
+    };
     vector<Entry> table;
     vector<bool> occupied;
+    
+    int h1(int id){
+        return id % 101;
+    }
+    
+    int h2(int id){
+        return 97 - (id % 97);
+    }
 
 public:
     ConcretePlayerTable() : table(101), occupied(101, false){} 
 
-    int h1(int id){
-        return id % 101;
-    }
-
-    int h2(int id){
-        return 97 - (id % 97);
-    }
 
     void insert(int playerID, string name) override {
         for (int i = 0; i < 101; i++)
@@ -347,6 +348,55 @@ string WorldNavigator::sumMinDistancesBinary(int n, vector<vector<int>>& roads) 
     // Sum all shortest distances between unique pairs (i < j)
     // Return the sum as a binary string
     // Hint: Handle large numbers carefully
+    const long long INF = 1e18;
+    vector<vector<long long>> res(n, vector<long long>(n));
+    long long sum = 0;
+    for (int f = 0; f < n; f++)
+    {
+        for (int t = 0; t < n; t++)
+        {
+            res[f][t] = (f == t) ? 0 : INF;        
+        }   
+    }
+    
+    for (vector<int> v:roads){
+        int from  = v[0];
+        int to  = v[1];
+        int weight = v[2];
+        res[from][to] = min(res[from][to], (long long)weight);
+    }
+
+    for (int k = 0; k < n; k++)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {   
+                if (res[i][k] < INF && res[k][j] < INF){ 
+                    res[i][j] = min(res[i][j], res[i][k] + res[k][j]);
+                }
+            }
+        }
+    }
+    
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {   
+            if (res[i][j] < INF){ 
+                sum+=res[i][j];
+            }
+        }
+    }
+
+    string binary = "";
+    while (sum > 0) {
+        binary = to_string(sum % 2) + binary;
+        sum = sum / 2;
+    }
+    
+    if (binary!="") return binary;
+    
     return "0";
 }
 
