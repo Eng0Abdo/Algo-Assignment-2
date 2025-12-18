@@ -259,7 +259,28 @@ long long InventorySystem::countStringPossibilities(string s) {
     // Rules: "uu" can be decoded as "w" or "uu"
     //        "nn" can be decoded as "m" or "nn"
     // Count total possible decodings
-    return 0;
+    
+    const int MOD = 1e9 + 7;
+    int n = s.size();
+
+    vector<long long> dp(n + 1, 0);
+    dp[0] = 1;
+
+    for (int i = 1; i <= n; i++) {
+
+
+        dp[i] = dp[i - 1];
+
+        if (i >= 2) {
+            if ((s[i - 2] == 'u' && s[i - 1] == 'u') ||
+                (s[i - 2] == 'n' && s[i - 1] == 'n')) {
+
+                dp[i] = (dp[i] + dp[i - 2]) % MOD;
+            }
+        }
+    }
+
+    return dp[n];
 }
 
 // =========================================================
@@ -269,8 +290,45 @@ long long InventorySystem::countStringPossibilities(string s) {
 bool WorldNavigator::pathExists(int n, vector<vector<int>>& edges, int source, int dest) {
     // TODO: Implement path existence check using BFS or DFS
     // edges are bidirectional
+
+    int maxIndex = max(source, dest);
+    for (auto& e : edges) {
+        maxIndex = max(maxIndex, max(e[0], e[1]));
+    }
+    
+    if (n <= maxIndex) {
+        return false;
+    }
+    
+    vector<vector<int>> graph(n);
+    for (auto& e : edges) {
+        graph[e[0]].push_back(e[1]);
+        graph[e[1]].push_back(e[0]); 
+    }
+    
+    vector<bool> visited(n, false);
+    queue<int> q;
+
+    q.push(source);
+    visited[source] = true;
+
+    while (!q.empty()) {
+        int current = q.front();
+        q.pop();
+
+        if (current == dest)
+            return true;
+
+        for (int neighbor : graph[current]) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                q.push(neighbor);
+            }
+        }
+    }
     return false;
 }
+
 struct DSU {
 
     vector<int> parent, rank;
