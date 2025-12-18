@@ -55,6 +55,14 @@ public:
                 occupied[index] = true;
                 return;
             }
+            else{
+                if (table[index].playerID == playerID)
+                {
+                    table[index].name = name;
+                    return;
+                }
+                
+            }
         }
         cout << "Table is Full";
     }
