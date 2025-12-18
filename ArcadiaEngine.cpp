@@ -116,7 +116,7 @@ private:
 
 public:
     ConcreteLeaderboard() {
-        MAX_LEVEL = 5;
+        MAX_LEVEL = 20;
         currentLevel = 0;
         head = new Node(MAX_LEVEL, -1, 1000000);
     }
