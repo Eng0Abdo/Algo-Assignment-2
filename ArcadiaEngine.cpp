@@ -588,7 +588,6 @@ long long InventorySystem::countStringPossibilities(string s) {
         return dp[n];
     }
 
-
 // =========================================================
 // PART C: WORLD NAVIGATOR (Graphs)
 // =========================================================
@@ -601,17 +600,17 @@ bool WorldNavigator::pathExists(int n, vector<vector<int>>& edges, int source, i
     for (auto& e : edges) {
         maxIndex = max(maxIndex, max(e[0], e[1]));
     }
-    
-    if (n <= maxIndex) {
+
+    if (n <= maxIndex || n==0 ) {
         return false;
     }
-    
+
     vector<vector<int>> graph(n);
     for (auto& e : edges) {
-        graph[e[0]].push_back(e[1]);
-        graph[e[1]].push_back(e[0]); 
-    }
-    
+        int u = e[0], v = e[1];
+        graph[u].push_back(v); graph[v].push_back(u); 
+        }
+
     vector<bool> visited(n, false);
     queue<int> q;
 
