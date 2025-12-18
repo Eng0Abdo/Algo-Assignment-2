@@ -74,26 +74,122 @@ public:
 
 class ConcreteLeaderboard : public Leaderboard {
 private:
-    // TODO: Define your skip list node structure and necessary variables
-    // Hint: You'll need nodes with multiple forward pointers
+    struct Node {
+        int id;
+        int score;
+        vector<Node*> next;
+
+        Node(int level, int i, int s) {
+            id = i;
+            score = s;
+            next.resize(level + 1, nullptr);
+        }
+    };
+
+    int MAX_LEVEL;
+    float P;
+    int currentLevel;
+    Node* head;
+
+    // random level
+    int getRandomLevel() {
+        int level = 0;
+        while ((rand() % 2) && level < MAX_LEVEL)
+            level++;
+        return level;
+    }
+
+    // comparison function
+    bool comesBefore(int id1, int sc1, int id2, int sc2) {
+        if (sc1 != sc2)
+            return sc1 > sc2;   // score descending
+        return id1 < id2;      // id ascending
+    }
+
 
 public:
     ConcreteLeaderboard() {
-        // TODO: Initialize your skip list
+        MAX_LEVEL = 5;
+        P = 0.5;
+        currentLevel = 0;
+        head = new Node(MAX_LEVEL, -1, 1000000);
     }
 
     void addScore(int playerID, int score) override {
-        // TODO: Implement skip list insertion
-        // Remember to maintain descending order by score
+        vector<Node*> update(MAX_LEVEL + 1);
+        Node* curr = head;
+
+        for (int level = currentLevel; level >= 0; level--) {
+            while (curr->next[level] &&
+                   comesBefore(curr->next[level]->id,
+                               curr->next[level]->score,
+                               playerID, score)) {
+                curr = curr->next[level];
+            }
+            update[level] = curr;
+        }
+
+        int newLevel = getRandomLevel();
+
+        if (newLevel > currentLevel) {
+            for (int i = currentLevel + 1; i <= newLevel; i++)
+                update[i] = head;
+            currentLevel = newLevel;
+        }
+
+        Node* newNode = new Node(newLevel, playerID, score);
+
+        for (int i = 0; i <= newLevel; i++) {
+            newNode->next[i] = update[i]->next[i];
+            update[i]->next[i] = newNode;
+        }
     }
 
     void removePlayer(int playerID) override {
-        // TODO: Implement skip list deletion
+        Node* curr = head;
+        Node* target = nullptr;
+
+        while (curr->next[0]) {
+            if (curr->next[0]->id == playerID) {
+                target = curr->next[0];
+                break;
+            }
+            curr = curr->next[0];
+        }
+
+        if (!target) return;
+
+        vector<Node*> update(MAX_LEVEL + 1);
+        curr = head;
+
+        for (int level = currentLevel; level >= 0; level--) {
+            while (curr->next[level] &&
+                   curr->next[level] != target) {
+                curr = curr->next[level];
+            }
+            update[level] = curr;
+        }
+
+        for (int i = 0; i <= currentLevel; i++) {
+            if (update[i]->next[i] == target)
+                update[i]->next[i] = target->next[i];
+        }
+
+        delete target;
+
+        while (currentLevel > 0 && head->next[currentLevel] == nullptr)
+            currentLevel--;
     }
 
     vector<int> getTopN(int n) override {
-        // TODO: Return top N player IDs in descending score order
-        return {};
+        vector<int> result;
+        Node* curr = head->next[0];
+
+        while (curr && n--) {
+            result.push_back(curr->id);
+            curr = curr->next[0];
+        }
+        return result;
     }
 };
 
@@ -125,10 +221,31 @@ public:
 // =========================================================
 
 int InventorySystem::optimizeLootSplit(int n, vector<int>& coins) {
-    // TODO: Implement partition problem using DP
-    // Goal: Minimize |sum(subset1) - sum(subset2)|
-    // Hint: Use subset sum DP to find closest sum to total/2
-    return 0;
+    int total = 0;
+    for (int c : coins)
+        total += c;
+
+    int target = total / 2;
+
+    vector<bool> dp(target + 1, false);
+    dp[0] = true;
+
+    for (int coin : coins) {
+        for (int s = target; s >= coin; s--) {
+            if (dp[s - coin])
+                dp[s] = true;
+        }
+    }
+    int bestSplit = 0;
+    for (int s = target; s >= 0; s--) {
+        if (dp[s]) {
+            bestSplit = s;
+            break;
+        }
+    }
+    int diff =  total - 2 * bestSplit;
+
+    return diff;
 }
 
 int InventorySystem::maximizeCarryValue(int capacity, vector<pair<int, int>>& items) {
